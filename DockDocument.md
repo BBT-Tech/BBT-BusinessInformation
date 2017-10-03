@@ -1,4 +1,4 @@
-## 百步梯外联部“商家信息管理系统”前后台对接文档 v1.0
+## 百步梯外联部“商家信息管理系统”前后台对接文档 v1.1
 
 ### A. 商家信息部分
 - 获取所有商家信息
@@ -154,7 +154,7 @@ RESPONSE:
 ***
 ```json
 POST(form-data) ./assets/API/accounts.php
-operation: new                //新建账号操作
+operation: create             //新建账号操作
 name: xxxxxx                  //新用户姓名
 username: xxxxxx              //新用户用户名
 password: xxxxxx              //新用户密码
