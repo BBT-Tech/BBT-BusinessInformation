@@ -35,8 +35,9 @@ function response($code, $errMsg = 'success') {
 
 //Check whether required paraments exist or not
 function existCheck() {
-	for($i = 0; $i < func_num_args(); $i++) {
-		if (!isset($_POST[func_get_arg($i)]))
+	for($i = 0; $i < func_num_args(); $i++)
+		if (!isset($_POST[func_get_arg($i)])) {
 			header('Location: http://p1.img.cctvpic.com/20120409/images/1333902721891_1333902721891_r.jpg');
-	}
+			exit(0);
+		}
 }
