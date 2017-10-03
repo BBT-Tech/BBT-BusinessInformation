@@ -76,10 +76,8 @@ switch ($_POST['operation']) {
 			$_POST['is_contacted'],
 			$_POST['contact_history']
 		]);
-		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC)))
-			response(0);
-		else
-			response(3, '写入数据库时发生错误，请联系管理员');
+		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC))) response(0);
+		response(3, '写入数据库时发生错误，请联系管理员');
 		break;
 
 	/* ==========================================================================
@@ -100,7 +98,7 @@ switch ($_POST['operation']) {
 			`charge_history` = ?,
 			`business_evaluation` = ?,
 			`remarks` = ?,
-			`is_contacted` = 1,
+			`is_contacted` = `is_contacted` OR ?,
 			`contact_history` = CONCAT(`contact_history`, ?)
 		WHERE `business_id` = ?';
 		$stmt = $connect->prepare($sql);
@@ -114,12 +112,25 @@ switch ($_POST['operation']) {
 			$_POST['charge_history'],
 			$_POST['business_evaluation'],
 			$_POST['remarks'],
+			$_POST['is_contacted'],
 			$_POST['contact_history'],
 			$_POST['business_id']
 		]);
-		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC)))
+
+		$_SESSION['user'] = 'minister';
+		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC))) {
+			if ($_POST['is_contacted'] == 0 && $_SESSION['user'] == 'minister') {
+				$stmt = $connect->prepare('
+					UPDATE `businesses`
+					SET
+						`is_contacted` = 0,
+						`contact_history` = ""
+					WHERE `business_id` = ?');
+				$stmt->execute([$_POST['business_id']]);
+				$stmt->fetchAll(PDO::FETCH_ASSOC);
+			}
 			response(0);
-		else
-			response(4, '更新数据库时发生错误，请联系管理员');
+		}
+		response(4, '更新数据库时发生错误，请联系管理员');
 		break;
 }
