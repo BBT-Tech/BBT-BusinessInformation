@@ -10,6 +10,16 @@ switch ($_POST['operation']) {
 	   Module 0. Get All Bussinesses' Information
 	   ========================================================================== */
 	case 'all':
+		$sql = 'SELECT * FROM `businesses`';
+		$stmt = $connect->prepare($sql);
+		$stmt->execute();
+		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		if (empty($result)) response(1, '数据库中暂无商家信息');
+
+		echo json_encode([
+			'businesses' => array_values($result),
+			'code' => 0
+		]);
 		break;
 
 	/* ==========================================================================
