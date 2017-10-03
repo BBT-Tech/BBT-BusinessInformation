@@ -21,7 +21,7 @@ CREATE TABLE `businesses`(
 
 CREATE TABLE `accounts`(
 	`account_id` INTEGER NOT NULL AUTO_INCREMENT,
-	`account` VARCHAR(30) NOT NULL,
+	`username` VARCHAR(30) NOT NULL,
 	`salt` TEXT NOT NULL,
 	`salted_password_hash` TEXT NOT NULL,
 	`name` TEXT NOT NULL,
@@ -29,5 +29,5 @@ CREATE TABLE `accounts`(
 	`register_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
 	PRIMARY KEY (account_id),
-	UNIQUE (account)
-)
+	UNIQUE (username)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8;

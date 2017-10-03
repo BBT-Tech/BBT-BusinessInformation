@@ -1,4 +1,4 @@
-## 百步梯外联部“商家信息管理系统”前后台对接文档 v0.1
+## 百步梯外联部“商家信息管理系统”前后台对接文档 v1.0
 
 ### A. 商家信息部分
 - 获取所有商家信息
@@ -8,23 +8,23 @@ GET ./assets/API/businesses.php
 RESPONSE:
 //On Success:
 {
-	"code": 0,
-	"businesses": [ //所有商家信息
+	"code": 0,                                       //操作成功
+	"businesses": [                                  //所有商家信息
 		{
-			"business_id": 3 //商家ID
-			"name": "xxxxxx" //商家名称
-			"industry": "xxxxxx" //行业
-			"contact": "xxxxxx" //联系方式
-			"address": "xxxxxx" //商家地址
-			"willingness": "xxxxxx" //合作意愿
-			"sponsorship_content": "xxxxxx" //赞助内容
-			"charge_history": "xxxxxx" //原负责人、合作时间等历史
-			"business_evaluation": "xxxxxx" //商家评价
-			"remarks": "xxxxxx" //备注
-			"is_contacted": 0 //是否已被联系 取值为1或0
-			"contact_history": "xxxxxx" //联系历史
-			"import_time": "xxxxxx" //导入时间
-			"update_time": "xxxxxx" //更新时间
+			"business_id": 3                         //商家 ID
+			"name": "xxxxxx"                         //商家名称
+			"industry": "xxxxxx"                     //行业
+			"contact": "xxxxxx"                      //联系方式
+			"address": "xxxxxx"                      //商家地址
+			"willingness": "xxxxxx"                  //合作意愿
+			"sponsorship_content": "xxxxxx"          //赞助内容
+			"charge_history": "xxxxxx"               //原负责人、合作时间
+			"business_evaluation": "xxxxxx"          //商家评价
+			"remarks": "xxxxxx"                      //备注
+			"is_contacted": 0                        //是否已被联系 取值为 1 或 0
+			"contact_history": "xxxxxx"              //联系历史
+			"import_time": "xxxxxx"                  //导入时间
+			"update_time": "xxxxxx"                  //更新时间
 		},
 		...
 	]
@@ -40,8 +40,8 @@ RESPONSE:
 - 搜索商家信息
 ```json
 POST(form-data) ./assets/API/businesses.php
-operation: search //搜索操作
-keyword: xxxxxx //关键词
+operation: search    //搜索操作
+keyword: xxxxxx      //关键词
 
 RESPONSE:
 //On Success:
@@ -73,8 +73,8 @@ contact_history: xxxxxx
 RESPONSE:
 //On Success:
 {
-	"code": 0,
-	"errMsg": "Success"
+	"code": 0, //操作成功
+	"errMsg": "success"
 }
 
 //On Failure:
@@ -85,6 +85,11 @@ RESPONSE:
 ```
 
 - 修改一条商家信息
+***
+1. 所有账号均可将“已被联系”修改为 1，或直接增加“联系历史”项
+2. “联系历史”项的增加只需将增加的内容传给后台即可，建议在修改界面注明“此项仅需填写增加内容”
+3. 仅部长账号可将“已被联系”修改至 0，后台在确认账号权限后会自动将“联系历史”项清空
+***
 ```json
 POST(form-data) ./assets/API/businesses.php
 operation: update, //修改操作
@@ -100,21 +105,115 @@ business_evaluation: xxxxxx,
 remarks: xxxxxx,
 is_contacted: 0,
 contact_history: xxxxxx
-// !!! 注意：
-// 1. 所有账号均可将“已被联系”修改为1，或直接增加“联系历史”项（此情况下只需将增加的内容传给后台即可）
-// 2. 仅部长账号可将“已被联系”修改至0，后台在确认账号权限后会自动将“联系历史”项清空
 
 RESPONSE:
 //On Success:
 {
-	"code": 0,
-	"errMsg": "Success"
+	"code": 0, //操作成功
+	"errMsg": "success"
 }
 
 //On Failure:
 {
 	"code": 4, //操作失败
 	"errMsg": "更新数据库时发生错误，请联系管理员"
+}
+```
+
+### B. 账号管理部分
+- 登录系统
+```json
+POST(form-data) ./assets/API/accounts.php
+operation: login              //登录操作
+username: xxxxxx              //用户名
+password: xxxxxx              //密码
+
+RESPONSE:
+//On Success:
+{
+	"code": 0,                //操作成功
+	"name": "xxx",            //姓名
+	"register_time": "xxx",   //注册时间
+	"update_time": "xxx",     //更新时间
+	"is_minister": 1,         //是否为部长账号
+	"errMsg": "success"
+}
+
+//On Failure:
+{
+	"code": 1, //用户名或密码错误
+	"errMsg": "用户名或密码错误"
+}
+```
+
+- 新建账号
+***
+1. 超级管理员**能且只能**新建部长账号
+2. 部长**能且只能**新建干事账号
+3. 密码允许设置为空（如果前端也允许的话）
+***
+```json
+POST(form-data) ./assets/API/accounts.php
+operation: new                //新建账号操作
+name: xxxxxx                  //新用户姓名
+username: xxxxxx              //新用户用户名
+password: xxxxxx              //新用户密码
+
+RESPONSE:
+//On Success:
+{
+	"code": 0, //操作成功
+	"errMsg": "success"
+}
+
+//On Failure:
+{
+	"code": 2, //用户名已存在
+	"errMsg": "该用户名已存在，换一个其他的吧"
+}
+
+{
+	"code": 3, //操作失败
+	"errMsg": "新建账号失败，请联系管理员"
+}
+```
+
+- 修改账号
+***
+1. 超级管理员**能且只能**修改部长账号
+2. 部长**能且只能**修改干事账号
+3. 若需要修改密码请将 `new_password` 项设置为 1
+***
+```json
+POST(form-data) ./assets/API/accounts.php
+operation: modify             //修改账号操作
+name: xxxxxx                  //新姓名
+new_password: 1               //是否修改密码
+password: xxxxxx              //新密码
+
+RESPONSE:
+//On Success:
+{
+	"code": 0, //操作成功
+	"errMsg": "success"
+}
+
+//On Failure:
+{
+	"code": 4, //操作失败
+	"errMsg": "更新账号失败，请联系管理员"
+}
+```
+
+- 退出系统
+```json
+GET ./assets/API/accounts.php
+
+RESPONSE:
+//On Success:
+{
+	"code": 0, //注销成功
+	"errMsg": "success"
 }
 ```
 
