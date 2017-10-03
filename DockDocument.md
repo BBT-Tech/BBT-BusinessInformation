@@ -1,4 +1,4 @@
-## 百步梯外联部“商家信息管理系统”前后台对接文档 v0.0
+## 百步梯外联部“商家信息管理系统”前后台对接文档 v0.1
 
 ### A. 商家信息部分
 - 获取所有商家信息
@@ -41,7 +41,7 @@ RESPONSE:
 ```json
 POST(form-data) ./assets/API/businesses.php
 operation: search //搜索操作
-key_word: xxxxxx //关键词
+keyword: xxxxxx //关键词
 
 RESPONSE:
 //On Success:
