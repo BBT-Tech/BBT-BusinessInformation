@@ -55,8 +55,7 @@ switch ($_POST['operation']) {
 	   Module 2. Add A Bussiness Information
 	   ========================================================================== */
 	case 'add':
-		existCheck('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'contact_history');
-		$_POST['is_contacted'] = isset($_POST['is_contacted']) ? 1 : 0;
+		existCheck('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history');
 
 		$sql = '
 		INSERT INTO `businesses`
@@ -87,5 +86,40 @@ switch ($_POST['operation']) {
 	   Module 3. Update A Bussiness Information
 	   ========================================================================== */
 	case 'update':
+		existCheck('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history', 'business_id');
+
+		$sql = '
+		UPDATE `businesses`
+		SET
+			`name` = ?,
+			`industry` = ?,
+			`contact` = ?,
+			`address` = ?,
+			`willingness` = ?,
+			`sponsorship_content` = ?,
+			`charge_history` = ?,
+			`business_evaluation` = ?,
+			`remarks` = ?,
+			`is_contacted` = 1,
+			`contact_history` = CONCAT(`contact_history`, ?)
+		WHERE `business_id` = ?';
+		$stmt = $connect->prepare($sql);
+		$stmt->execute([
+			$_POST['name'],
+			$_POST['industry'],
+			$_POST['contact'],
+			$_POST['address'],
+			$_POST['willingness'],
+			$_POST['sponsorship_content'],
+			$_POST['charge_history'],
+			$_POST['business_evaluation'],
+			$_POST['remarks'],
+			$_POST['contact_history'],
+			$_POST['business_id']
+		]);
+		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC)))
+			response(0);
+		else
+			response(4, '更新数据库时发生错误，请联系管理员');
 		break;
 }
