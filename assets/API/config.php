@@ -17,27 +17,52 @@ $super_password = '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00
 
 
 
-//Universal header set code
+/* ==========================================================================
+   0. Universal Code: Set Header And Start Session
+   ========================================================================== */
 header('Content-Type: application/json');
+session_start();
 
-//Database connection based on PDO:
-try {
-	$connect = new PDO("mysql:host=$addr;dbname=$dbname;charset=utf8", $username, $password);
-} catch(PDOException $ex) {
-    response(2333, '数据库连接出错，请联系管理员');
-}
-
-//Return code process function:
-function response($code, $errMsg = 'success') {
+/* ==========================================================================
+   1. Error Response Function: Response Error Code And Error Message
+   ========================================================================== */
+function response($code = 0, $errMsg = 'success') {
 	echo json_encode(['code' => $code, 'errMsg' => $errMsg]);
 	exit(0);
 }
 
-//Check whether required paraments exist or not
-function existCheck() {
+/* ==========================================================================
+   2. PDO-Based Database Connection
+   ========================================================================== */
+try {
+	$connect = new PDO("mysql:host=$addr;dbname=$dbname;charset=utf8", $username, $password);
+}
+catch(PDOException $err) {
+    response(2333, '数据库连接出错，请联系管理员');
+}
+
+/* ==========================================================================
+   3. Exist Check Function: Check Whether Required Paraments Exist
+   ========================================================================== */
+function exist_check() {
 	for($i = 0; $i < func_num_args(); $i++)
 		if (!isset($_POST[func_get_arg($i)])) {
 			header('Location: http://p1.img.cctvpic.com/20120409/images/1333902721891_1333902721891_r.jpg');
-			exit(0);
+			exit();
 		}
+}
+
+/* ==========================================================================
+   4. Operation Check Function: Response Error If Operation Failed
+   ========================================================================== */
+function operation_success($operation) {
+   if ($operation === false) response(100, '操作失败，请联系管理员');
+   return true;
+}
+
+/* ==========================================================================
+   5. Session Check Function: Check Whether Vistor Is Logged In
+   ========================================================================== */
+function session_check() {
+   if (!isset($_SESSION['user'])) response(233, '请登录系统！');
 }

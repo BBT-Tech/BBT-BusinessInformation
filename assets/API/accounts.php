@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once('./config.php');
 
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
