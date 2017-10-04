@@ -1,7 +1,7 @@
 <?php
 require_once('./config.php');
 
-if (!isset($_SESSION['user'])) response(233, '请登录系统！');
+session_check();
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
 
 switch ($_POST['operation']) {
@@ -54,7 +54,7 @@ switch ($_POST['operation']) {
 	   Module 2. Add A Bussiness Information
 	   ========================================================================== */
 	case 'add':
-		existCheck('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history');
+		exist_check('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history');
 
 		$sql = '
 		INSERT INTO `businesses`
@@ -83,7 +83,7 @@ switch ($_POST['operation']) {
 	   Module 3. Update A Bussiness Information
 	   ========================================================================== */
 	case 'update':
-		existCheck('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history', 'business_id');
+		exist_check('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history', 'business_id');
 
 		$sql = '
 		UPDATE `businesses`

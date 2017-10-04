@@ -1,13 +1,18 @@
 <?php
 require_once('./config.php');
 
+echo json_encode(array_values(db_query('SELECT * FROM businesses')));
+return;
+
+
+
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
 switch ($_POST['operation']) {
 	/* ==========================================================================
-	   Module 0. Get All Bussinesses' Information
+	   Module 0. Get All Accounts' Information
 	   ========================================================================== */
 	case 'all':
-		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
+		session_check();
 		$sql = '
 		SELECT
 			account_id, username, name, is_minister, register_time, update_time
@@ -16,7 +21,8 @@ switch ($_POST['operation']) {
 		$stmt = $connect->prepare($sql);
 		$stmt->execute();
 		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		if (empty($result)) response(7, '数据库中暂无任何账号信息');
+		if (operation_success($result) && empty($result))
+			response(7, '数据库中暂无任何账号信息');
 
 		echo json_encode([
 			'accounts' => array_values($result),
@@ -28,11 +34,11 @@ switch ($_POST['operation']) {
 	   Module 1. Create A New Account
 	   ========================================================================== */
 	case 'create':
-		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
+		session_check();
 		if (!(($_SESSION['user'] == $super_username)
 			|| ($_SESSION['user'] == 'minister')))
 			response(1, '权限验证出错！');
-		existCheck('username', 'name', 'password');
+		exist_check('username', 'name', 'password');
 
 		$sql = 'SELECT * FROM accounts WHERE username = ?';
 		$stmt = $connect->prepare($sql);
@@ -63,10 +69,10 @@ switch ($_POST['operation']) {
 	   Module 2. Modify An Account's Name And Password
 	   ========================================================================== */
 	case 'modify':
-		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
+		session_check();
 		if (!($_SESSION['user'] == $super_username || $_SESSION['user'] == 'minister'))
 			response(4, '权限验证出错！');
-		existCheck('username', 'new_name', 'set_new_password');
+		exist_check('username', 'new_name', 'set_new_password');
 		$modify_minister = $_SESSION['user'] == $super_username ? 1 : 0;
 
 		$sql = '
@@ -91,7 +97,7 @@ switch ($_POST['operation']) {
 
 		if ($stmt->fetchColumn() !== false) {
 			if ($_POST['set_new_password'] == 1) {
-				existCheck('new_password');
+				exist_check('new_password');
 				$salt = sha1((mt_rand()));
 
 				$stmt = $connect->prepare('
@@ -125,7 +131,7 @@ switch ($_POST['operation']) {
 	   Module 3. Login To Business Information Manage System
 	   ========================================================================== */
 	case 'login':
-		existCheck('username', 'password');
+		exist_check('username', 'password');
 		if ($_POST['username'] === $super_username
 			&& hash('sha256', $_POST['password']) === $super_password) {
 			$_SESSION['user'] = $super_username;
