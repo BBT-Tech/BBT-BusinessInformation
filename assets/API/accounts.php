@@ -1,11 +1,6 @@
 <?php
 require_once('./config.php');
 
-echo json_encode(array_values(db_query('SELECT * FROM businesses')));
-return;
-
-
-
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
 switch ($_POST['operation']) {
 	/* ==========================================================================
@@ -13,20 +8,16 @@ switch ($_POST['operation']) {
 	   ========================================================================== */
 	case 'all':
 		session_check();
-		$sql = '
-		SELECT
-			account_id, username, name, is_minister, register_time, update_time
-		FROM
-			accounts';
-		$stmt = $connect->prepare($sql);
-		$stmt->execute();
-		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		if (operation_success($result) && empty($result))
-			response(7, '数据库中暂无任何账号信息');
+		$result = db_query('
+			SELECT
+				account_id, username, name, is_minister, register_time, update_time
+			FROM accounts
+		');
+		if (empty($result)) response(7, '数据库中暂无任何账号信息');
 
 		echo json_encode([
-			'accounts' => array_values($result),
-			'code' => 0
+			'code' => 0,
+			'accounts' => array_values($result)
 		]);
 		break;
 
@@ -35,34 +26,33 @@ switch ($_POST['operation']) {
 	   ========================================================================== */
 	case 'create':
 		session_check();
-		if (!(($_SESSION['user'] == $super_username)
-			|| ($_SESSION['user'] == 'minister')))
+		if (!(($_SESSION['user'] == 'minister')
+			|| ($_SESSION['user'] == $super_username)))
 			response(1, '权限验证出错！');
 		exist_check('username', 'name', 'password');
 
-		$sql = 'SELECT * FROM accounts WHERE username = ?';
-		$stmt = $connect->prepare($sql);
-		$stmt->execute([$_POST['username']]);
-		$result = $stmt->fetchColumn();
-		if (($result !== false) || ($_POST['username'] == $super_username))
+		$result = db_query(
+			'SELECT * FROM accounts WHERE username = ?',
+			[$_POST['username']]
+		);
+		if (!empty($result) || ($_POST['username'] == $super_username))
 			response(2, '该用户名已存在，请更换');
 
 		$salt = sha1((mt_rand()));
 		$sql = '
-		INSERT INTO accounts
-			(username, name, salt, salted_password_hash, is_minister)
-		VALUES
-			(?,?,?,?,?)';
-		$stmt = $connect->prepare($sql);
-		$stmt->execute([
+			INSERT INTO accounts
+				(username, name, salt, salted_password_hash, is_minister)
+			VALUES (?,?,?,?,?)
+		';
+		$arr = [
 			$_POST['username'],
 			$_POST['name'],
 			$salt,
 			hash('sha256', $_POST['password'] . $salt),
 			($_SESSION['user'] == $super_username ? 1 : 0)
-		]);
-		if ($stmt->fetchColumn() === false) response(0);
-		response(3, '新建账号失败，请联系管理员');
+		];
+		db_query($sql, $arr);
+		response();
 		break;
 
 	/* ==========================================================================
@@ -76,31 +66,31 @@ switch ($_POST['operation']) {
 		$modify_minister = $_SESSION['user'] == $super_username ? 1 : 0;
 
 		$sql = '
-		SELECT * FROM accounts
-		WHERE
-			username = ?
-			AND is_minister = ?;
-		UPDATE accounts
-		SET
-			name = ?
-		WHERE
-			username = ?
-			AND is_minister = ?';
-		$stmt = $connect->prepare($sql);
-		$stmt->execute([
+			SELECT * FROM accounts
+			WHERE
+				username = ?
+				AND is_minister = ?;
+			UPDATE accounts
+			SET
+				name = ?
+			WHERE
+				username = ?
+				AND is_minister = ?
+		';
+		$arr = [
 			$_POST['username'],
 			$modify_minister,
 			$_POST['new_name'],
 			$_POST['username'],
 			$modify_minister
-		]);
+		];
 
-		if ($stmt->fetchColumn() !== false) {
+		if (!empty(db_query($sql, $arr))) {
 			if ($_POST['set_new_password'] == 1) {
 				exist_check('new_password');
 				$salt = sha1((mt_rand()));
 
-				$stmt = $connect->prepare('
+				$sql = '
 					SELECT * FROM accounts
 					WHERE
 						username = ?
@@ -111,18 +101,19 @@ switch ($_POST['operation']) {
 						salted_password_hash = ?
 					WHERE
 						username = ?
-						AND is_minister = ?');
-				$stmt->execute([
+						AND is_minister = ?
+				';
+				$arr = [
 					$_POST['username'],
 					$modify_minister,
 					$salt,
 					hash('sha256', $_POST['new_password'] . $salt),
 					$_POST['username'],
 					$modify_minister
-				]);
-				if ($stmt->fetchColumn() !== false) response(0);
+				];
+				if (!empty(db_query($sql, $arr))) response();
 			}
-			response(0);
+			response();
 		}
 		response(5, '修改权限内无对应账号！');
 		break;
@@ -140,12 +131,12 @@ switch ($_POST['operation']) {
 			$update_time =   '2017-10-01 00:00:00';
 			$is_minister = 1;
 		} else {
-			$sql = '
-			SELECT * FROM accounts WHERE username = ?';
-			$stmt = $connect->prepare($sql);
-			$stmt->execute([$_POST['username']]);
-			$result = $stmt->fetch(PDO::FETCH_ASSOC);
-			if (($result === false) || (
+			$result = db_query(
+				'SELECT * FROM accounts WHERE username = ?',
+				[$_POST['username']],
+				true
+			);
+			if (empty($result) || (
 				hash('sha256', $_POST['password'] . $result['salt'])
 				!== $result['salted_password_hash'])
 			) response(6, '用户名或密码错误');
@@ -172,6 +163,6 @@ switch ($_POST['operation']) {
 	   ========================================================================== */
 	case 'logout':
 		unset($_SESSION['user']);
-		response(0);
+		response();
 		break;
 }
