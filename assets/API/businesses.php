@@ -121,6 +121,58 @@ switch ($_POST['operation']) {
 			';
 			db_query($sql, [$_POST['business_id']]);
 		}
+
+		//Record An Update Log
+		$max_rows = 3000;
+		$rows = db_query('SELECT COUNT(*) AS rows FROM update_log')[0]['rows'];
+		$sql = $rows < $max_rows ?
+			'
+			INSERT INTO update_log
+				(executer, business_id, name, industry, contact, address, willingness, sponsorship_content, charge_history, business_evaluation, remarks, contact_history)
+			VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+			' :
+			'
+			UPDATE update_log
+			SET
+				executer = ?,
+				business_id = ?,
+				name = ?,
+				industry = ?,
+				contact = ?,
+				address = ?,
+				willingness = ?,
+				sponsorship_content = ?,
+				charge_history = ?,
+				business_evaluation = ?,
+				remarks = ?,
+				contact_history = ?
+			WHERE
+				log_id =
+					(
+						SELECT MIN(log_id) FROM
+						(
+							SELECT * FROM update_log
+							WHERE
+								execute_time =
+								(SELECT MIN(execute_time) FROM update_log)
+						)
+						AS this
+					)
+			';
+		db_query($sql, [
+			$_SESSION['user'],
+			$_POST['business_id'],
+			$_POST['name'],
+			$_POST['industry'],
+			$_POST['contact'],
+			$_POST['address'],
+			$_POST['willingness'],
+			$_POST['sponsorship_content'],
+			$_POST['charge_history'],
+			$_POST['business_evaluation'],
+			$_POST['remarks'],
+			$_POST['contact_history']
+		]);
 		response();
 		break;
 }
