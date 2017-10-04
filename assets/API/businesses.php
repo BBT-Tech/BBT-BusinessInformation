@@ -56,7 +56,7 @@ switch ($_POST['operation']) {
 				(name, industry, contact, address, willingness, sponsorship_content, charge_history, business_evaluation, remarks, is_contacted, contact_history)
 			VALUES (?,?,?,?,?,?,?,?,?,?,?)
 		';
-		$arr = [
+		db_query($sql, [
 			$_POST['name'],
 			$_POST['industry'],
 			$_POST['contact'],
@@ -68,8 +68,7 @@ switch ($_POST['operation']) {
 			$_POST['remarks'],
 			$_POST['is_contacted'],
 			$_POST['contact_history']
-		];
-		db_query($sql, $arr);
+		]);
 		response();
 		break;
 
@@ -95,7 +94,7 @@ switch ($_POST['operation']) {
 				contact_history = CONCAT(contact_history, ?)
 			WHERE business_id = ?
 			';
-		$arr = [
+		db_query($sql, [
 			$_POST['name'],
 			$_POST['industry'],
 			$_POST['contact'],
@@ -108,9 +107,8 @@ switch ($_POST['operation']) {
 			$_POST['is_contacted'],
 			$_POST['contact_history'],
 			$_POST['business_id']
-		];
+		]);
 
-		db_query($sql, $arr);
 		if ($_POST['is_contacted'] == 0 && $_SESSION['user'] == 'minister') {
 			$sql = '
 				UPDATE businesses
@@ -119,7 +117,7 @@ switch ($_POST['operation']) {
 					contact_history = ""
 				WHERE business_id = ?
 			';
-			db_query($sql, [$_POST['business_id']]);
+			db_query($sql, array($_POST['business_id']));
 		}
 
 		//Record An Update Log

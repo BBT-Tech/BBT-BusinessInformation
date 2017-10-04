@@ -63,13 +63,13 @@ function session_check() {
 	5. Database Query Function: Return Query Result
 	   Response Error If Query Operation Fails
 	========================================================================== */
-function db_query($query_sql, $query_arr = [], $one_row_only = false) {
+function db_query($query_sql, $query_arr = []) {
 	global $connect;
 	$query_stmt = $connect->prepare($query_sql);
 	$query_stmt->execute($query_arr);
-	$query_result = $one_row_only ?
-		$query_stmt->fetch(PDO::FETCH_ASSOC) : $query_stmt->fetchAll(PDO::FETCH_ASSOC);
+	$query_result = $query_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	if ($query_result === false) response(100, '操作失败，请联系管理员');
+	if ($query_result === false)
+		response(100, '操作失败，请联系管理员');
 	return $query_result;
 }
