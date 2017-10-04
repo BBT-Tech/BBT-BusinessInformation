@@ -2,6 +2,7 @@
 session_start();
 require_once('./config.php');
 
+if (!isset($_SESSION['user'])) response(233, '请登录系统！');
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
 
 switch ($_POST['operation']) {

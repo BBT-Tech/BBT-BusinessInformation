@@ -2,11 +2,31 @@
 session_start();
 require_once('./config.php');
 
-$_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'logout';
-
+$_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
 switch ($_POST['operation']) {
 	/* ==========================================================================
-	   Module 0. Create A New Account
+	   Module 0. Get All Bussinesses' Information
+	   ========================================================================== */
+	case 'all':
+		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
+		$sql = '
+		SELECT
+			account_id, username, name, is_minister, register_time, update_time
+		FROM
+			accounts';
+		$stmt = $connect->prepare($sql);
+		$stmt->execute();
+		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		if (empty($result)) response(7, '数据库中暂无任何账号信息');
+
+		echo json_encode([
+			'accounts' => array_values($result),
+			'code' => 0
+		]);
+		break;
+
+	/* ==========================================================================
+	   Module 1. Create A New Account
 	   ========================================================================== */
 	case 'create':
 		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
@@ -41,7 +61,7 @@ switch ($_POST['operation']) {
 		break;
 
 	/* ==========================================================================
-	   Module 1. Modify An Account's Name And Password
+	   Module 2. Modify An Account's Name And Password
 	   ========================================================================== */
 	case 'modify':
 		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
@@ -103,7 +123,7 @@ switch ($_POST['operation']) {
 		break;
 
 	/* ==========================================================================
-	   Module 2. Login To Business Information Manage System
+	   Module 3. Login To Business Information Manage System
 	   ========================================================================== */
 	case 'login':
 		existCheck('username', 'password');
@@ -143,7 +163,7 @@ switch ($_POST['operation']) {
 		break;
 
 	/* ==========================================================================
-	   Module 3. Logout
+	   Module 4. Logout
 	   ========================================================================== */
 	case 'logout':
 		unset($_SESSION['user']);

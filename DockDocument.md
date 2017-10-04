@@ -1,4 +1,4 @@
-## 百步梯外联部“商家信息管理系统”前后台对接文档 v1.3
+## 百步梯外联部“商家信息管理系统”前后台对接文档 v2.0
 
 ### A. 商家信息部分
 - 获取所有商家信息
@@ -33,7 +33,7 @@ RESPONSE:
 //On Failure:
 {
 	"code": 1, //数据库为空
-	"errMsg": "数据库中暂无商家信息"
+	"errMsg": "数据库中暂无任何商家信息"
 }
 ```
 
@@ -121,6 +121,35 @@ RESPONSE:
 ```
 
 ### B. 账号管理部分
+
+- 获取所有账号信息
+```json
+GET ./assets/API/accounts.php
+
+RESPONSE:
+//On Success:
+{
+	"code": 0,                                       //操作成功
+	"accounts": [                                    //所有账号信息
+		{
+			"account_id": 3                          //账号 ID
+			"username": "xxxxxx"                     //用户名
+			"name": "xxxxxx"                         //姓名
+			"is_minister": 1                         //是否部长账号
+			"register_time": "xxxxxx"                //注册时间
+			"update_time": "xxxxxx"                  //更新时间
+		},
+		...
+	]
+}
+
+//On Failure:
+{
+	"code": 7, //数据库为空
+	"errMsg": "数据库中暂无任何账号信息"
+}
+```
+
 - 新建账号
 ***
 1. 超级管理员**能且只能**新建部长账号
@@ -217,13 +246,34 @@ RESPONSE:
 
 - 退出系统
 ```json
-GET ./assets/API/accounts.php
+POST(form-data) ./assets/API/accounts.php
+operation: logout             //退出系统操作
 
 RESPONSE:
 //On Success:
 {
 	"code": 0, //退出系统成功
 	"errMsg": "success"
+}
+```
+
+### C. 商家信息更新历史记录
+***
+1. 仅超级管理员和部长有获取历史记录的权限
+2. 页面直接返回包含导出数据的 csv 文件，上限为 3000 条
+***
+GET ./assets/API/update_log.php
+
+```
+//On Failure:
+{
+	"code": 1, //无访问权限（当前登录的是干事账号）
+	"errMsg": "权限验证出错！"
+}
+
+{
+	"code": 2, //暂无数据
+	"errMsg": "数据库中暂无更新历史记录" 
 }
 ```
 
