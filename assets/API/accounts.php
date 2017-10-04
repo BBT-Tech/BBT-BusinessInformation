@@ -10,20 +10,22 @@ switch ($_POST['operation']) {
 	   ========================================================================== */
 	case 'create':
 		if (!isset($_SESSION['user'])) response(233, '请登录系统！');
-		if (!($_SESSION['user'] == $super_username || $_SESSION['user'] == 'minister'))
+		if (!(($_SESSION['user'] == $super_username)
+			|| ($_SESSION['user'] == 'minister')))
 			response(1, '权限验证出错！');
 		existCheck('username', 'name', 'password');
 
-		$sql = 'SELECT * FROM `accounts` WHERE username = ?';
+		$sql = 'SELECT * FROM accounts WHERE username = ?';
 		$stmt = $connect->prepare($sql);
 		$stmt->execute([$_POST['username']]);
-		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		if (!empty($result)) response(2, '该用户名已存在，请更换');
+		$result = $stmt->fetchColumn();
+		if (($result !== false) || ($_POST['username'] == $super_username))
+			response(2, '该用户名已存在，请更换');
 
 		$salt = sha1((mt_rand()));
 		$sql = '
-		INSERT INTO `accounts`
-			(`username`, `name`, `salt`, `salted_password_hash`, `is_minister`)
+		INSERT INTO accounts
+			(username, name, salt, salted_password_hash, is_minister)
 		VALUES
 			(?,?,?,?,?)';
 		$stmt = $connect->prepare($sql);
@@ -34,7 +36,7 @@ switch ($_POST['operation']) {
 			hash('sha256', $_POST['password'] . $salt),
 			($_SESSION['user'] == $super_username ? 1 : 0)
 		]);
-		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC))) response(0);
+		if ($stmt->fetchColumn() === false) response(0);
 		response(3, '新建账号失败，请联系管理员');
 		break;
 
@@ -46,45 +48,58 @@ switch ($_POST['operation']) {
 		if (!($_SESSION['user'] == $super_username || $_SESSION['user'] == 'minister'))
 			response(4, '权限验证出错！');
 		existCheck('username', 'new_name', 'set_new_password');
+		$modify_minister = $_SESSION['user'] == $super_username ? 1 : 0;
 
 		$sql = '
-		UPDATE `accounts`
-		SET
-			`name` = ?
+		SELECT * FROM accounts
 		WHERE
-			`username` = ?
-			AND `is_minister` = ?';
+			username = ?
+			AND is_minister = ?;
+		UPDATE accounts
+		SET
+			name = ?
+		WHERE
+			username = ?
+			AND is_minister = ?';
 		$stmt = $connect->prepare($sql);
 		$stmt->execute([
+			$_POST['username'],
+			$modify_minister,
 			$_POST['new_name'],
 			$_POST['username'],
-			($_SESSION['user'] == $super_username ? 1 : 0)
+			$modify_minister
 		]);
 
-		if (empty($stmt->fetchAll(PDO::FETCH_ASSOC))) {
+		if ($stmt->fetchColumn() !== false) {
 			if ($_POST['set_new_password'] == 1) {
 				existCheck('new_password');
 				$salt = sha1((mt_rand()));
 
 				$stmt = $connect->prepare('
-					UPDATE `accounts`
-					SET
-						`salt` = ?,
-						`salted_password_hash` = ?
+					SELECT * FROM accounts
 					WHERE
-						`username` = ?
-						AND `is_minister` = ?');
+						username = ?
+						AND is_minister = ?;
+					UPDATE accounts
+					SET
+						salt = ?,
+						salted_password_hash = ?
+					WHERE
+						username = ?
+						AND is_minister = ?');
 				$stmt->execute([
+					$_POST['username'],
+					$modify_minister,
 					$salt,
 					hash('sha256', $_POST['new_password'] . $salt),
 					$_POST['username'],
-					($_SESSION['user'] == $super_username ? 1 : 0)
+					$modify_minister
 				]);
-				$stmt->fetchAll(PDO::FETCH_ASSOC);
+				if ($stmt->fetchColumn() !== false) response(0);
 			}
 			response(0);
 		}
-		response(5, '修改账号失败，请联系管理员');
+		response(5, '修改权限内无对应账号！');
 		break;
 
 	/* ==========================================================================
@@ -101,20 +116,21 @@ switch ($_POST['operation']) {
 			$is_minister = 1;
 		} else {
 			$sql = '
-			SELECT * FROM `accounts` WHERE username = ?';
+			SELECT * FROM accounts WHERE username = ?';
 			$stmt = $connect->prepare($sql);
 			$stmt->execute([$_POST['username']]);
-			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-			if (empty($result) || (
-				hash('sha256', $_POST['password'] . $result[0]['salt'])
-				!== $result[0]['salted_password_hash'])
+			$result = $stmt->fetch(PDO::FETCH_ASSOC);
+			if (($result === false) || (
+				hash('sha256', $_POST['password'] . $result['salt'])
+				!== $result['salted_password_hash'])
 			) response(6, '用户名或密码错误');
 			
-			$_SESSION['user'] = $result[0]['is_minister'] ? 'minister' : 'member';
-			$name = $result[0]['name'];
-			$register_time = $result[0]['register_time'];
-			$update_time = $result[0]['update_time'];
-			$is_minister = $result[0]['is_minister'];
+			$_SESSION['user'] = $result['is_minister'] ?
+				'minister' : $result['username'];
+			$name = $result['name'];
+			$register_time = $result['register_time'];
+			$update_time = $result['update_time'];
+			$is_minister = $result['is_minister'];
 		}
 
 		echo json_encode([
