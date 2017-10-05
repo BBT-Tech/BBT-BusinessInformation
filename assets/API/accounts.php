@@ -96,8 +96,6 @@ switch ($_POST['operation']) {
 					AND is_minister = ?
 			';
 			db_query($sql, [
-				$_POST['username'],
-				$modify_minister,
 				$salt,
 				hash('sha256', $_POST['new_password'] . $salt),
 				$_POST['username'],

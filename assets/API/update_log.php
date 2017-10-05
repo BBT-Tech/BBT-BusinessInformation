@@ -8,10 +8,10 @@ $data = db_query('
 	SELECT
 		execute_time,
 		username,
-		accounts.name,
+		accounts.name AS accout_name,
 		is_minister,
 		business_id,
-		update_log.name,
+		update_log.name AS business_name,
 		industry,
 		contact,
 		address,
