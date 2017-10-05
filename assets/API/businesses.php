@@ -9,7 +9,7 @@ switch ($_POST['operation']) {
 	   ========================================================================== */
 	case 'all':
 		$result = db_query('SELECT * FROM businesses');
-		if (empty($result)) response(1, '数据库中暂无商家信息');
+		if (empty($result)) response(1, '数据库中暂无任何商家信息');
 
 		echo json_encode([
 			'code' => 0,
@@ -48,7 +48,7 @@ switch ($_POST['operation']) {
 	   Module 2. Add A Bussiness Information
 	   ========================================================================== */
 	case 'add':
-		if ($_SESSION['user'] == $super_username) response(1, '权限验证出错！');
+		if ($_SESSION['user'] == $super_username) response(3, '权限验证出错！');
 		exist_check('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history');
 
 		$sql = '
@@ -76,7 +76,7 @@ switch ($_POST['operation']) {
 	   Module 3. Update A Bussiness Information
 	   ========================================================================== */
 	case 'update':
-		if ($_SESSION['user'] == $super_username) response(1, '权限验证出错！');
+		if ($_SESSION['user'] == $super_username) response(4, '权限验证出错！');
 		exist_check('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history', 'business_id');
 
 		$sql = '

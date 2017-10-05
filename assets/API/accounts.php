@@ -4,13 +4,13 @@ require_once './config.php';
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
 switch ($_POST['operation']) {
 	/* ==========================================================================
-		Module 0. Get All Accounts' Information
-		========================================================================== */
+	   Module 0. Get All Accounts' Information
+	   ========================================================================== */
 	case 'all':
 		session_check();
 		$result = db_query('
 			SELECT
-				account_id, username, name, is_minister, register_time, update_time
+				username, name, is_minister, register_time, update_time
 			FROM accounts
 		');
 		if (empty($result)) response(1, '数据库中暂无任何账号信息');
@@ -27,14 +27,14 @@ switch ($_POST['operation']) {
 	case 'create':
 		session_check();
 		exist_check('username', 'name', 'password');
-		if (!$_SESSION['is_minister']) response(1, '权限验证出错！');
+		if (!$_SESSION['is_minister']) response(2, '权限验证出错！');
 
 		$result = db_query(
 			'SELECT * FROM accounts WHERE username = ?',
 			array($_POST['username'])
 		);
 		if (!empty($result) || ($_POST['username'] == $super_username))
-			response(2, '该用户名已存在，请更换');
+			response(3, '该用户名已存在，请更换');
 
 		$salt = sha1((mt_rand()));
 		$sql = '
@@ -57,7 +57,7 @@ switch ($_POST['operation']) {
 	   ========================================================================== */
 	case 'modify':
 		session_check();
-		if (!$_SESSION['is_minister']) response(1, '权限验证出错！');
+		if (!$_SESSION['is_minister']) response(4, '权限验证出错！');
 		exist_check('username', 'new_name', 'set_new_password');
 		$modify_minister = ($_SESSION['user'] == $super_username) ? 1 : 0;
 
@@ -115,7 +115,7 @@ switch ($_POST['operation']) {
 		if (($_POST['username'] === $super_username)
 			&& (hash('sha256', $_POST['password']) === $super_password)) {
 			$_SESSION['is_minister'] = $is_minister = 1;
-			$_SESSION['user'] = $super_username;
+			$_SESSION['user'] = $username = $super_username;
 			
 			$name = '超级管理员';
 			$register_time = $update_time = '2017-10-01 00:00:00';
@@ -130,7 +130,7 @@ switch ($_POST['operation']) {
 			) response(6, '用户名或密码错误');
 			
 			$_SESSION['is_minister'] = $is_minister = $result[0]['is_minister'];
-			$_SESSION['user'] = $result[0]['username'];
+			$_SESSION['user'] = $username = $result[0]['username'];
 
 			$name = $result[0]['name'];
 			$register_time = $result[0]['register_time'];
@@ -139,6 +139,7 @@ switch ($_POST['operation']) {
 
 		echo json_encode([
 			'code' => 0,
+			'username' => $username,
 			'name' => $name,
 			'register_time' => $register_time,
 			'update_time' => $update_time,
