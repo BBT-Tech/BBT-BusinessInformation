@@ -1,9 +1,8 @@
 <?php
-require_once('./config.php');
+require_once './config.php';
 
 session_check();
 $_POST['operation'] = isset($_POST['operation']) ? $_POST['operation'] : 'all';
-
 switch ($_POST['operation']) {
 	/* ==========================================================================
 	   Module 0. Get All Bussinesses' Information
@@ -49,6 +48,7 @@ switch ($_POST['operation']) {
 	   Module 2. Add A Bussiness Information
 	   ========================================================================== */
 	case 'add':
+		if ($_SESSION['user'] == $super_username) response(1, '权限验证出错！');
 		exist_check('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history');
 
 		$sql = '
@@ -76,9 +76,12 @@ switch ($_POST['operation']) {
 	   Module 3. Update A Bussiness Information
 	   ========================================================================== */
 	case 'update':
+		if ($_SESSION['user'] == $super_username) response(1, '权限验证出错！');
 		exist_check('name', 'industry', 'contact', 'address', 'willingness', 'sponsorship_content', 'charge_history', 'business_evaluation', 'remarks', 'is_contacted', 'contact_history', 'business_id');
 
 		$sql = '
+			SELECT * FROM businesses
+			WHERE business_id = ?;
 			UPDATE businesses
 			SET
 				name = ?,
@@ -94,7 +97,7 @@ switch ($_POST['operation']) {
 				contact_history = CONCAT(contact_history, ?)
 			WHERE business_id = ?
 			';
-		db_query($sql, [
+		$arr = [
 			$_POST['name'],
 			$_POST['industry'],
 			$_POST['contact'],
@@ -107,9 +110,10 @@ switch ($_POST['operation']) {
 			$_POST['is_contacted'],
 			$_POST['contact_history'],
 			$_POST['business_id']
-		]);
+		];
 
-		if ($_POST['is_contacted'] == 0 && $_SESSION['user'] == 'minister') {
+		if (empty(db_query($sql, $arr))) response(5, '请求错误，数据库中无对应商家');
+		if (($_POST['is_contacted'] == 0) && $_SESSION['is_minister']) {
 			$sql = '
 				UPDATE businesses
 				SET
