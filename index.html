@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<title>商家信息</title>
+	<link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<link href="//cdn.bootcss.com/metisMenu/2.7.0/metisMenu.min.css" rel="stylesheet">
+	<link href="//cdn.bootcss.com/datatables/1.10.16/css/dataTables.bootstrap.min.css" rel="stylesheet">
+	<link href="./assets/vender/dataTables.responsive.css" rel="stylesheet">
+	<link href="//cdn.bootcss.com/startbootstrap-sb-admin-2/3.3.7+1/css/sb-admin-2.min.css" rel="stylesheet">
+	<link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<style type="text/css">
+		td {
+			word-break: break-all;
+		}
+		textarea {
+			resize: vertical;
+		}
+		.red {
+			color: red;
+		}
+	</style>
+</head>
+<body>
+<div class="wrapper">
+	<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+		<div class="navbar-header" style="float: initial">
+			<a class="navbar-brand" href="./">商家管理系统</a>
+			<ul class="nav navbar-top-links navbar-right" style="text-align: right">
+				<li class="hidden" data-manage-minister><a href="./accounts.html"><i class="fa fa-user fa-fw"></i> 部长账号管理</a></li>
+				<li class="hidden" data-manage-user><a href="./accounts.html"><i class="fa fa-user fa-fw"></i> 干事账号管理</a></li>
+				<li><a href="javascript:Admin.logout()"><i class="fa fa-sign-out fa-fw"></i> 退出登录</a></li>
+			</ul>
+		</div>
+	</nav>
+	<div class="page-wrapper">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				商家信息&nbsp;&nbsp;&nbsp;<a data-add href="javascript:Admin.detail()"><i class="fa fa-plus-circle fa-fw"></i> 添加商家信息</a>
+			</div>
+			<!-- /.panel-heading -->
+			<div class="panel-body">
+				<table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-main">
+					<thead>
+						<tr>
+							<th style="max-width: 40px">ID</th>
+							<th style="min-width: 40px">状态</th>
+							<th style="min-width: 70px">商家名称</th>
+							<th style="min-width: 50px">行业</th>
+							<th style="min-width: 60px">联系方式</th>
+							<th style="min-width: 60px">商家地址</th>
+							<th style="min-width: 60px">合作意愿</th>
+							<th style="min-width: 60px">赞助内容</th>
+							<th style="min-width: 60px">原负责人</th>
+							<th style="min-width: 60px">商家评价</th>
+							<th style="min-width: 60px">备注</th>
+							<th style="min-width: 80px">联系历史</th>
+							<th style="min-width: 65px">更新时间</th>
+							<th style="min-width: 40px">操作</th>
+						</tr>
+					</thead>
+					<tbody data-target>
+					</tbody>
+				</table>
+			</div>
+			<!-- /.panel-body -->
+		</div>
+	</div>
+</div>
+
+<div class="modal fade in" id="form-modal" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="formModalLabel">新增商家信息</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/metisMenu/2.7.0/metisMenu.min.js"></script>
+<script src="//cdn.bootcss.com/startbootstrap-sb-admin-2/3.3.7+1/js/sb-admin-2.min.js"></script>
+<script src="//cdn.bootcss.com/datatables/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="./assets/vender/dataTables.responsive.js"></script>
+<script src="//cdn.bootcss.com/datatables/1.10.16/js/dataTables.bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script type="text/plain" id="business-table-row">
+	<tr data-id="{business_id}">
+		<td>{business_id}</td>
+		<td>{is_contacted_text}</td>
+		<td>{name}</td>
+		<td>{industry}</td>
+		<td>{contact}</td>
+		<td>{address}</td>
+		<td>{willingness}</td>
+		<td>{sponsorship_content}</td>
+		<td>{charge_history}</td>
+		<td>{business_evaluation}</td>
+		<td>{remarks}</td>
+		<td>{contact_history}</td>
+		<td>{update_time}</td>
+		<td></td>
+	</tr>
+</script>
+<script type="text/plain" id="form-template">
+	<form action="./assets/API/businesses.php" onsubmit="return false">
+		<div class="form-group hidden">
+	        <label>ID</label>
+	        <input class="form-control" type="text" data-name="business_id">
+	    </div>
+		<div class="form-group hidden">
+	        <label>商家名称 <span class="red">*</span></label>
+	        <input class="form-control" type="text" data-name="name">
+	    </div>
+		<div class="form-group hidden">
+	        <label>行业 <span class="red">*</span></label>
+	        <input class="form-control" type="text" data-name="industry">
+	    </div>
+		<div class="form-group hidden">
+	        <label>联系方式 <span class="red">*</span></label>
+	        <input class="form-control" type="text" data-name="contact">
+	    </div>
+		<div class="form-group hidden">
+	        <label>商家地址 <span class="red">*</span></label>
+	        <input class="form-control" type="text" data-name="address">
+	    </div>
+		<div class="form-group hidden">
+	        <label>合作意愿 <span class="red">*</span></label>
+	        <input class="form-control" type="text" data-name="willingness">
+	    </div>
+		<div class="form-group hidden">
+	        <label>赞助内容 <span class="red">*</span></label>
+	        <input class="form-control" type="text" data-name="sponsorship_content">
+	    </div>
+		<div class="form-group hidden">
+	        <label>原负责人及合作时间</label>
+	        <input class="form-control" type="text" data-name="charge_history">
+	    </div>
+		<div class="form-group hidden">
+	        <label>商家评价</label>
+	        <input class="form-control" type="text" data-name="business_evaluation">
+	    </div>
+		<div class="form-group hidden">
+	        <label>备注</label>
+	        <input class="form-control" type="text" data-name="remarks">
+	    </div>
+		<div class="form-group hidden">
+	        <label>是否已被联系</label>
+	        <input class="form-control" type="text" data-name="is_contacted">
+	    </div>
+		<div class="form-group hidden">
+	        <label>联系历史</label>
+	        <div class="form-group hidden">
+	        	<textarea class="form-control" type="text" data-name="old_contact_history"></textarea>
+	        </div>
+	        <textarea class="form-control" type="text" data-name="contact_history"></textarea>
+	    </div>
+	    <button class="submit hidden"></button>
+	</form>
+</script>
+<script src="./assets/js/admin.js"></script>
+</body>
+</html>
