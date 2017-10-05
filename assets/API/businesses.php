@@ -98,6 +98,7 @@ switch ($_POST['operation']) {
 			WHERE business_id = ?
 			';
 		$arr = [
+			$_POST['business_id'],
 			$_POST['name'],
 			$_POST['industry'],
 			$_POST['contact'],
