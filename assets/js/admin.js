@@ -8,6 +8,9 @@
 	}
 	if (user_type == "minister")
 		$("[data-manage-user]").removeClass("hidden");
+	if (user_type == "root" || user_type == "minister") {
+		$("a[data-download]").removeClass("hidden");
+	}
 
 	var data_table_map = (function() {
 		var tmp = [ "business_id", "is_contacted_text", "name", "industry", "contact",
@@ -128,6 +131,11 @@
 			if (render_list[i].show)
 				t.parent(".form-group").removeClass("hidden");
 		});
+		(function() {
+			var t = $("#form-modal form [data-name=old_contact_history]");
+			if (t.val())
+				t.val(t.val().replace(/<br>/g, "\n"));
+		})();
 		$("#form-modal form").submit(function() {
 			var blank = false;
 			$(this).find("[name]").each(function(item) {
@@ -138,6 +146,11 @@
 			});
 			if (blank)
 				return alert("请填写所有必填项！");
+			(function() {
+				var t = $("#form-modal form [data-name=contact_history]");
+				if (t.val())
+					t.val(t.val() + "<br>");
+			})();
 			var postdata = $(this).serialize();
 			if (id)
 				postdata += "&operation=update";
@@ -148,60 +161,6 @@
 				if (d.code)
 					return alert(d.errMsg);
 				return location.reload(true);
-				if (id) {
-					var target = Admin.table.row($("[data-target] [data-id="+id+"]"));
-					var rd = target.data();
-					if (!rd) {
-						console.log($("[data-id="+id+"]"));
-						console.log("[data-id="+id+"]");
-						console.log(id);
-					}
-					Object.keys(render_list).forEach(function(i) {
-						if (render_list[i].write) {
-							var value = render_list[i].write_value || $("#form-modal form [data-name="+i+"]").val();
-							rd[data_table_map[render_list[i].write]] = value;
-						}
-					});
-					target.data(rd);
-				} else {
-					var rd = [];
-					var n = Object.keys(data_table_map).length / 2;
-					for (var i=0;i<n;++i) {
-						var name = data_table_map[i];
-						if (name == "is_contacted_text") {
-							var value = $("#form-modal form [data-name=is_contacted]").val() == 1 ?
-								"已联系" : "<span class='red'>未联系</span>";
-						}
-						else
-							value = $("#form-modal form [data-name="+name+"]").val();
-						rd[i] = (value || "");
-						d[name] = value;
-					}
-					var bid = d.business_id || 100;
-					rd[0] = bid;
-					rd[data_table_map["update_time"]] = "刚刚";
-					var str = "";
-					d.is_contacted = 0;
-					if (d.is_contacted == 0) {
-						str += '<a href="javascript:Admin.contact('
-							+ bid + ', true)">设为已联系</a>&nbsp;&nbsp;';
-					}
-					if (user_type == "minister") {
-						if (d.is_contacted == 1) {
-							str += '<a href="javascript:Admin.contact('
-								+ bid + ', false)">设为未联系</a>&nbsp;&nbsp;';
-						}
-						str += '<a href="javascript:Admin.detail('
-							+ bid + ')">修改</a>&nbsp;&nbsp;';
-					}
-					rd[n] = str;
-					Admin.data[bid] = d;
-					Admin.table.row.add(rd).draw().node();
-				}
-				renderForm.ok = true;
-				$("#form-modal").modal("hide");
-				if (callback)
-					callback();
 			})
 			.fail(function() {
 				alert("服务器错误，请联系管理员");
@@ -266,7 +225,7 @@
 					disabled: true
 				},
 				"contact_history": {
-					show: true,
+					show: Admin.data[id]["is_contacted"] == 1 ? true : false,
 					fill: true,
 					value: "",
 					required: false
@@ -318,7 +277,6 @@
 					value: 0
 				},
 				"contact_history": {
-					show: true,
 					fill: true,
 					required: false
 				}
@@ -328,7 +286,7 @@
 	}
 
 	function contact(id, is) {
-		if (!confirm("确认设为"+(is === false ? "未" : "已")+"联系吗？"))
+		if (!is && !confirm("设为未联系将删除所有联系历史，确认继续吗？"))
 			return;
 		renderForm(id, {
 			"business_id": {
@@ -370,31 +328,24 @@
 				write: "is_contacted_text",
 				write_value: is ? "已联系" : "<span class='red'>未联系</span>"
 			},
-			"contact_history": {
+			"old_contact_history": {
+				show: true,
+				target: "contact_history",
 				fill: true,
+				required: false,
+				disabled: true
+			},
+			"contact_history": {
+				show: true,
+				fill: true,
+				value: "",
 				required: false
 			}
-		}, function() {
-			var target = Admin.table.row($("[data-target] [data-id="+id+"]"));
-			var rd = target.data();
-			var n = Object.keys(data_table_map).length / 2;
-			var str = "";
-			if (!is) {
-				str += '<a href="javascript:Admin.contact('
-					+ id + ', true)">设为已联系</a>&nbsp;&nbsp;';
-			}
-			if (user_type == "minister") {
-				if (is) {
-					str += '<a href="javascript:Admin.contact('
-						+ id + ', false)">设为未联系</a>&nbsp;&nbsp;';
-				}
-				str += '<a href="javascript:Admin.detail('
-					+ id + ')">修改</a>&nbsp;&nbsp;';
-			}
-			rd[n] = str;
-			target.data(rd).draw();
 		});
-		$("#form-modal form").submit();
+		if (is)
+			$("#form-modal").modal("show");
+		else
+			$("#form-modal form").submit();
 	}
 
 	function logout() {

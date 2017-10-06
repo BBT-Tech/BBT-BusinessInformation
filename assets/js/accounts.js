@@ -34,7 +34,7 @@
 					var t = item.find("td:last-of-type");
 					if ((user_type == "root" && e.is_minister == 1) ||
 						(user_type == "minister" && e.is_minister == 0)) {
-						t.append('<a href="javascript:Accounts.detail(\''+e.username+'\')">修改</a>&nbsp;&nbsp;');
+						t.append('<a href="javascript:Accounts.detail(\''+e.username+'\')">修改姓名</a>&nbsp;&nbsp;');
 						t.append('<a href="javascript:Accounts.password(\''+e.username+'\')">修改密码</a>');
 					}
 					item.appendTo(target);
