@@ -1,7 +1,7 @@
 ;var Accounts = (function() {
 	var user_type = $.cookie("user_type");
 	if (!user_type)
-		return location.href = "./login.html";
+		return updateUrl("./login.html");
 
 	var data_table_map = (function() {
 		var tmp = [ "type", "username", "name", "update_time", "register_time" ];
@@ -16,7 +16,7 @@
 	$.get("./assets/API/accounts.php")
 	.done(function(d) {
 		if (d.code == 233)
-			return location.href = "./login.html";
+			return updateUrl("./login.html");
 		if (d.code > 1)
 			return alert(d.errMsg);
 		Accounts.data = [];
@@ -142,7 +142,7 @@
 					});
 					target.data(rd);
 				} else {
-					location.reload(true);
+					updateUrl();
 				}
 				renderForm.ok = true;
 				$("#form-modal").modal("hide");
@@ -236,7 +236,7 @@
 		}).done(function(d) {
 			if (d.code)
 				return alert(d.errMsg);
-			location.href = "./login.html";
+			updateUrl("./login.html");
 		})
 		.fail(function() {
 			alert("服务器错误，请联系管理员");

@@ -1,7 +1,7 @@
 ;var Admin = (function() {
 	var user_type = $.cookie("user_type");
 	if (!user_type)
-		return location.href = "./login.html";
+		return updateUrl("./login.html");
 	if (user_type == "root") {
 		$("[data-manage-minister]").removeClass("hidden");
 		$("a[data-add]").addClass("hidden");
@@ -29,7 +29,7 @@
 	$.get("./assets/API/businesses.php")
 	.done(function(d) {
 		if (d.code == 233)
-			return location.href = "./login.html";
+			return updateUrl("./login.html");
 		if (d.code > 1)
 			return alert(d.errMsg);
 		Admin.data = [];
@@ -142,6 +142,7 @@
 			var blank = false;
 			$(this).find("[name]").each(function(item) {
 				if (this.value == "" && render_list[this.name].required !== false) {
+					console.log(this.name);
 					blank = true;
 					return false;
 				}
@@ -163,7 +164,7 @@
 				if (d.code)
 					return alert(d.errMsg);
 				if (!silent)
-					location.reload(true);
+					updateUrl();
 				return;
 			})
 			.fail(function() {
@@ -362,7 +363,7 @@
 		}).done(function(d) {
 			if (d.code)
 				return alert(d.errMsg);
-			location.href = "./login.html";
+			updateUrl("./login.html");
 		})
 		.fail(function() {
 			alert("服务器错误，请联系管理员");
@@ -391,7 +392,7 @@
 						suc ++;
 					if (done == total) {
 						alert("共有 "+total+" 项\n成功 "+suc+" 项\n失败 "+(total-suc)+" 项");
-						location.reload(true);
+						updateUrl();
 					}
 				}, true);
 			}
