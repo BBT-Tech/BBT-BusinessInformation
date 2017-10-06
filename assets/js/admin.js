@@ -43,7 +43,7 @@
 					})
 					var item = $(t);
 					var optd = item.find("td:last-of-type");
-					if (e.is_contacted == 0) {
+					if (user_type != "root" && e.is_contacted == 0) {
 						optd.append('<a href="javascript:Admin.contact('
 							+ e.business_id + ', true)">设为已联系</a>&nbsp;&nbsp;');
 					}
