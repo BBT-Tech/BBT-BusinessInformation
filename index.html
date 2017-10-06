@@ -20,6 +20,11 @@
 		.red {
 			color: red;
 		}
+		.wrapper a {
+			color: #47A174;
+			text-decoration: none;
+			outline: none;
+		}
 	</style>
 </head>
 <body>
@@ -37,7 +42,13 @@
 	<div class="page-wrapper">
 		<div class="panel panel-default">
 			<div class="panel-heading">
-				商家信息&nbsp;&nbsp;&nbsp;<a data-add href="javascript:Admin.detail()"><i class="fa fa-plus-circle fa-fw"></i> 添加商家信息</a>&nbsp;&nbsp;&nbsp;<a data-download class="hidden" href="./assets/API/update_log.php"><i class="fa fa-download fa-fw" aria-hidden="true"></i> 导出更新历史记录</a>
+				商家信息
+				&nbsp;&nbsp;&nbsp;
+				<a data-add href="javascript:Admin.detail()"><i class="fa fa-plus-circle fa-fw"></i> 添加商家信息</a>
+				&nbsp;&nbsp;&nbsp;
+				<a data-download class="hidden" href="./assets/API/update_log.php"><i class="fa fa-download fa-fw"></i> 导出更新历史记录</a>
+				&nbsp;&nbsp;&nbsp;
+				<a data-refresh class="hidden" href="javascript:Admin.uncontactAll()"><i class="fa fa-refresh fa-fw"></i> 全部设为未联系</a>
 			</div>
 			<!-- /.panel-heading -->
 			<div class="panel-body">
@@ -136,7 +147,12 @@
 	    </div>
 		<div class="form-group hidden">
 	        <label>合作意愿 <span class="red">*</span></label>
-	        <input class="form-control" type="text" data-name="willingness">
+	        <select class="form-control" data-name="willingness">
+	        	<option></option>
+	        	<option value="有">有</option>
+	        	<option value="无">无</option>
+	        </select>
+	        <!-- <input class="form-control" type="text" data-name="willingness"> -->
 	    </div>
 		<div class="form-group hidden">
 	        <label>赞助内容 <span class="red">*</span></label>

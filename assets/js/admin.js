@@ -6,8 +6,10 @@
 		$("[data-manage-minister]").removeClass("hidden");
 		$("a[data-add]").addClass("hidden");
 	}
-	if (user_type == "minister")
+	if (user_type == "minister") {
 		$("[data-manage-user]").removeClass("hidden");
+		$("a[data-refresh]").removeClass("hidden");
+	}
 	if (user_type == "root" || user_type == "minister") {
 		$("a[data-download]").removeClass("hidden");
 	}
@@ -104,7 +106,7 @@
 			return false;
 	});
 
-	function renderForm(id, render_list, callback) {
+	function renderForm(id, render_list, callback, silent) {
 		renderForm.ok = false;
 		var data = {};
 		if (id) {
@@ -160,10 +162,16 @@
 			.done(function(d) {
 				if (d.code)
 					return alert(d.errMsg);
-				return location.reload(true);
+				if (!silent)
+					location.reload(true);
+				return;
 			})
 			.fail(function() {
 				alert("服务器错误，请联系管理员");
+			})
+			.always(function(status, data) {
+				if (callback)
+					callback(status, data);
 			});
 		});
 	}
@@ -285,8 +293,8 @@
 		$("#form-modal").modal("show");
 	}
 
-	function contact(id, is) {
-		if (!is && !confirm("设为未联系将删除所有联系历史，确认继续吗？"))
+	function contact(id, is, callback, silent) {
+		if (!silent && !is && !confirm("设为未联系将删除所有联系历史，确认继续吗？"))
 			return;
 		renderForm(id, {
 			"business_id": {
@@ -341,7 +349,7 @@
 				value: "",
 				required: false
 			}
-		});
+		}, callback, silent);
 		if (is)
 			$("#form-modal").modal("show");
 		else
@@ -361,10 +369,40 @@
 		});
 	}
 
+	function uncontactAll() {
+		var total = 0;
+		var suc = 0;
+		var done = 0;
+		Admin.data.forEach(function(item) {
+			if (item.is_contacted == 1)
+				total ++;
+		});
+		if (!total)
+			return alert("没有需要设为未联系的项");
+		if (!confirm("将会全部 "+total+" 项设为未联系并删除所有联系历史，确认继续吗？"))
+			return;
+		if (total > 10)
+			alert("正在操作，请耐心等待，不要进行其他操作...");
+		Admin.data.forEach(function(item) {
+			if (item.is_contacted == 1) {
+				contact(item.business_id, false, function(data, status) {
+					done ++;
+					if (status == "success" && data.code == 0)
+						suc ++;
+					if (done == total) {
+						alert("共有 "+total+" 项\n成功 "+suc+" 项\n失败 "+(total-suc)+" 项");
+						location.reload(true);
+					}
+				}, true);
+			}
+		});
+	}
+
 	return {
-		detail : detail,
-		contact : contact,
-		logout : logout,
+		detail: detail,
+		contact: contact,
+		uncontactAll: uncontactAll,
+		logout: logout,
 		map: data_table_map
 	}
 })();
