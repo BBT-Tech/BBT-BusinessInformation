@@ -380,7 +380,7 @@
 		});
 		if (!total)
 			return alert("没有需要设为未联系的项");
-		if (!confirm("将会全部 "+total+" 项设为未联系并删除所有联系历史，确认继续吗？"))
+		if (!confirm("将会把全部 "+total+" 项设为未联系并删除所有联系历史，确认继续吗？"))
 			return;
 		if (total > 10)
 			alert("正在操作，请耐心等待，不要进行其他操作...");
