@@ -28,6 +28,9 @@ $data = db_query('
 ');
 if (empty($data)) response(2, '数据库中暂无更新历史记录');
 
+foreach ($data as &$row)
+	$row['contact_history'] = str_replace('<br>', '', $row['contact_history']);
+
 $heads = [
 	'更新时间',
 	'操作者用户名',
