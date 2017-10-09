@@ -4,11 +4,11 @@
 //Database configurations:
 $addr = 'localhost';                            //Database address
 $dbname = 'business_information';               //Database name
-$username = 'business_information';     //Username for project database
-$password = 'NtbL8m5UCaJ16G5h';           //Password for project database
+$username = 'DB_username_for_this_project';     //Username for project database
+$password = 'corresponding_password';           //Password for project database
 
 //Super administrator's username and password SHA256 hash value
-$super_username = 'root';
+$super_username = 'test';
 $super_password = '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08';
 
 /* --- Configuration Part End --- */
